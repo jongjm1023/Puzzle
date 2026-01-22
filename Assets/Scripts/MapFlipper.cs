@@ -32,10 +32,13 @@ public class MapFlipper : MonoBehaviour
     {
         isFlipping = true;
 
-        // 1. Disable Gravity
+        Quaternion initialPlayerRotation = Quaternion.identity;
+
+        // 1. Disable Gravity & Capture Rotation
         if (player != null)
         {
             player.SetGravityEnabled(false);
+            initialPlayerRotation = player.transform.rotation;
         }
 
         // 2. Rotate Map
@@ -43,7 +46,6 @@ public class MapFlipper : MonoBehaviour
         Quaternion startRotation = mapRoot.rotation;
         
         // Toggle: If we are at 0, go to 180. If at 180, go to 360 (0).
-        // Or simply add 180 to the current rotation.
         Quaternion endRotation = startRotation * Quaternion.Euler(0, 0, 180f);
 
         float elapsed = 0f;
@@ -56,6 +58,12 @@ public class MapFlipper : MonoBehaviour
 
             mapRoot.rotation = Quaternion.Slerp(startRotation, endRotation, t);
 
+            // Fix Player Rotation (Keep them upright/facing same way)
+            if (player != null)
+            {
+                player.transform.rotation = initialPlayerRotation;
+            }
+
             elapsed += Time.deltaTime;
             yield return null;
         }
@@ -66,6 +74,7 @@ public class MapFlipper : MonoBehaviour
         // 3. Enable Gravity
         if (player != null)
         {
+            player.transform.rotation = initialPlayerRotation;
             player.SetGravityEnabled(true);
         }
 

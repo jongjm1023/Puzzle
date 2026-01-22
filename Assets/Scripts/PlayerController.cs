@@ -82,7 +82,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Move the player
-        if (moveDirection.magnitude >= 0.1f)
+        if (moveDirection.magnitude >= 0.1f && useGravity)
         {
             // Normalize moveDirection so diagonal movement isn't faster
             // But only if we have input (magnitude > 0)
