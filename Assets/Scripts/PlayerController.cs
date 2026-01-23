@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         
-        // Ensure the Rigidbody doesn't tip over
+        // Ensure the Rigidbody doesn't tip over and is simulation-driven
         rb.freezeRotation = true;
 
         // Try to find the main camera
@@ -51,6 +51,9 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        // If the Rigidbody is kinematic (e.g. during map flip), do not attempt to move it via physics
+        if (rb.isKinematic) return;
+
         HandleMovement();
     }
 
