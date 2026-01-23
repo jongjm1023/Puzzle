@@ -43,6 +43,17 @@ public class CameraFollow : MonoBehaviour
         if (target == null)
             return;
 
+        // 시간이 멈춘 상태에서는 카메라 회전 안함
+        if (Time.timeScale == 0f)
+        {
+            // 위치만 업데이트 (회전은 안함) - 마지막 회전 상태 유지
+            Quaternion currentRotation = Quaternion.Euler(currentPitch, currentYaw, 0);
+            Vector3 currentPosition = target.position + currentRotation * offset;
+            transform.position = currentPosition;
+            transform.LookAt(target.position);
+            return;
+        }
+
         HandleRotation();
 
         // Calculate rotation
@@ -67,6 +78,9 @@ public class CameraFollow : MonoBehaviour
     void HandleRotation()
     {
         if (Mouse.current == null) return;
+        
+        // 시간이 멈춘 상태에서는 카메라 회전 안함
+        if (Time.timeScale == 0f) return;
 
         // Read Input
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();

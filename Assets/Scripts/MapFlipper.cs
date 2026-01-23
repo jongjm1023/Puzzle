@@ -12,7 +12,6 @@ public class MapFlipper : MonoBehaviour
     [Header("Settings")]
     public float duration = 1.0f;
 
-    private bool isFlipping = false;
     private List<RigidbodyData> activeRigidbodies = new List<RigidbodyData>();
 
     // Rigidbody의 원래 상태를 저장하기 위한 구조체
@@ -24,7 +23,7 @@ public class MapFlipper : MonoBehaviour
 
     void Update()
     {
-        if (!isFlipping && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+        if (StateManager.Instance.CurrentState() != State.MapFlip && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
         {
             StartCoroutine(FlipRoutine());
         }
@@ -32,7 +31,14 @@ public class MapFlipper : MonoBehaviour
 
     IEnumerator FlipRoutine()
     {
-        isFlipping = true;
+        // 상태 체크
+        if (!StateManager.Instance.CanUseAbility())
+        {
+            Debug.LogWarning("다른 능력 사용 중입니다!");
+            yield break;
+        }
+        
+        StateManager.Instance.SetState(State.MapFlip);
 
         // 1. 플레이어 상태 저장 및 중력 해제
         Quaternion initialPlayerRotation = Quaternion.identity;
@@ -76,7 +82,8 @@ public class MapFlipper : MonoBehaviour
             player.transform.rotation = initialPlayerRotation;
         }
 
-        isFlipping = false;
+        // 상태 초기화
+        StateManager.Instance.SetState(State.Normal);
     }
 
     private void FreezeAllPhysics()
