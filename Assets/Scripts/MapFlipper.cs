@@ -1,27 +1,29 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MapFlipper : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("The root object containing the entire level geometry.")]
     public Transform mapRoot;
-    
-    [Tooltip("The player controller to manage gravity.")]
     public PlayerController player;
 
     [Header("Settings")]
-    [Tooltip("Time it takes to complete the flip (seconds).")]
     public float duration = 1.0f;
 
     private bool isFlipping = false;
-    private float targetRoll = 0f; // Current Z rotation target
+    private List<RigidbodyData> activeRigidbodies = new List<RigidbodyData>();
+
+    // Rigidbody의 원래 상태를 저장하기 위한 구조체
+    struct RigidbodyData
+    {
+        public Rigidbody rb;
+        public bool wasKinematic;
+    }
 
     void Update()
     {
-        // Check for 'R' key press
-        // Using the "New Input System" direct check since we didn't add an action for "Flip" in the asset yet
         if (!isFlipping && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
         {
             StartCoroutine(FlipRoutine());
@@ -32,33 +34,29 @@ public class MapFlipper : MonoBehaviour
     {
         isFlipping = true;
 
+        // 1. 플레이어 상태 저장 및 중력 해제
         Quaternion initialPlayerRotation = Quaternion.identity;
-
-        // 1. Disable Gravity & Capture Rotation
         if (player != null)
         {
-            player.SetGravityEnabled(false);
             initialPlayerRotation = player.transform.rotation;
         }
 
-        // 2. Rotate Map
-        // We rotate 180 degrees around the Z axis (Roll)
+        // 2. 모든 Rigidbody 물리 정지 (맵 내부의 물체들)
+        FreezeAllPhysics();
+
+        // 3. 맵 회전 설정
         Quaternion startRotation = mapRoot.rotation;
-        
-        // Toggle: If we are at 0, go to 180. If at 180, go to 360 (0).
         Quaternion endRotation = startRotation * Quaternion.Euler(0, 0, 180f);
 
         float elapsed = 0f;
-
         while (elapsed < duration)
         {
             float t = elapsed / duration;
-            // Smooth step for smoother start/end
-            t = t * t * (3f - 2f * t);
+            t = t * t * (3f - 2f * t); // SmoothStep
 
             mapRoot.rotation = Quaternion.Slerp(startRotation, endRotation, t);
 
-            // Fix Player Rotation (Keep them upright/facing same way)
+            // [중요] 플레이어가 맵의 자식이라면 회전값이 변하므로 매 프레임 고정
             if (player != null)
             {
                 player.transform.rotation = initialPlayerRotation;
@@ -68,16 +66,47 @@ public class MapFlipper : MonoBehaviour
             yield return null;
         }
 
-        // Ensure we end exactly at the target rotation
         mapRoot.rotation = endRotation;
 
-        // 3. Enable Gravity
+        // 4. 상태 복구
+        UnfreezeAllPhysics();
+
         if (player != null)
         {
             player.transform.rotation = initialPlayerRotation;
-            player.SetGravityEnabled(true);
         }
 
         isFlipping = false;
+    }
+
+    private void FreezeAllPhysics()
+    {
+        activeRigidbodies.Clear();
+        // 맵 내에 있는 모든 Rigidbody를 찾습니다. (성능을 위해 mapRoot 하위만 찾는 것이 좋습니다)
+        Rigidbody[] rbs = mapRoot.GetComponentsInChildren<Rigidbody>();
+
+        foreach (Rigidbody rb in rbs)
+        {
+            // 현재 상태 저장
+            activeRigidbodies.Add(new RigidbodyData { rb = rb, wasKinematic = rb.isKinematic });
+            
+            // 물리 연산 중지 (속도 초기화 및 Kinematic 설정)
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+    }
+
+    private void UnfreezeAllPhysics()
+    {
+        foreach (RigidbodyData data in activeRigidbodies)
+        {
+            if (data.rb != null)
+            {
+                // 원래 Kinematic이 아니었던 물체들만 다시 물리 연산 활성화
+                data.rb.isKinematic = data.wasKinematic;
+            }
+        }
+        activeRigidbodies.Clear();
     }
 }
