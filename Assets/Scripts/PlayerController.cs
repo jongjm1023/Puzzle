@@ -91,23 +91,25 @@ public class PlayerController : MonoBehaviour
     {
         if (playerCollider == null) return;
 
-        // Use Collider Bounds to find the exact bottom of the player
-        // This works regardless of where the Pivot Point is (Center, Top, Bottom)
-        float bottomY = playerCollider.bounds.min.y;
-        Vector3 center = playerCollider.bounds.center;
+        // SphereCast Logic
+        // Radius: Slightly smaller than the collider's width to avoid catching side walls
+        float radius = playerCollider.bounds.extents.x * 0.9f;
         
-        // Place the check box slightly below the bottom surface
-        Vector3 checkBoxCenter = new Vector3(center.x, bottomY - 0.05f, center.z);
+        // Origin: Start from the center of the collider
+        Vector3 origin = playerCollider.bounds.center;
         
-        // Size: Slightly smaller than width to avoid wall touching
-        Vector3 halfExtents = new Vector3(playerCollider.bounds.extents.x * 0.9f, 0.05f, playerCollider.bounds.extents.z * 0.9f);
+        // Distance: Distance from center to bottom + small threshold (0.1f)
+        float distToBottom = playerCollider.bounds.extents.y;
+        float maxDistance = distToBottom + 0.1f;
 
-        Collider[] hits = Physics.OverlapBox(checkBoxCenter, halfExtents, transform.rotation, groundLayer);
+        // Use SphereCastAll to get all hits, so we can ignore the player's own collider
+        RaycastHit[] hits = Physics.SphereCastAll(origin, radius, Vector3.down, maxDistance, groundLayer);
         
         isGrounded = false;
         foreach (var hit in hits)
         {
-            if (hit.gameObject != gameObject)
+            // Ignore self
+            if (hit.collider.gameObject != gameObject)
             {
                 isGrounded = true;
                 break;
