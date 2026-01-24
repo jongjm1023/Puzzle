@@ -126,18 +126,50 @@ public class ObjectHighlighter : MonoBehaviour
         // 원본 머티리얼 저장
         originalMaterial = renderer.sharedMaterial;
         
+        if (originalMaterial == null)
+        {
+            Debug.LogWarning($"ObjectHighlighter: {renderer.gameObject.name}에 머티리얼이 없습니다!");
+            return;
+        }
+        
         // 새 머티리얼 인스턴스 생성
         Material newMaterial = new Material(renderer.sharedMaterial);
         
-        // Emission 활성화
-        newMaterial.EnableKeyword("_EMISSION");
+        // 방법 1: 색상 직접 변경 (가장 확실한 방법)
+        // _Color 또는 _BaseColor 또는 _MainColor 프로퍼티 찾기
+        bool colorChanged = false;
+        if (newMaterial.HasProperty("_Color"))
+        {
+            Color originalColor = newMaterial.GetColor("_Color");
+            // 원본 색상과 하이라이트 색상을 블렌드
+            newMaterial.SetColor("_Color", Color.Lerp(originalColor, highlightColor, 0.9f));
+            colorChanged = true;
+        }
+        else if (newMaterial.HasProperty("_BaseColor"))
+        {
+            Color originalColor = newMaterial.GetColor("_BaseColor");
+            newMaterial.SetColor("_BaseColor", Color.Lerp(originalColor, highlightColor, 0.9f));
+            colorChanged = true;
+        }
+        else if (newMaterial.HasProperty("_MainColor"))
+        {
+            Color originalColor = newMaterial.GetColor("_MainColor");
+            newMaterial.SetColor("_MainColor", Color.Lerp(originalColor, highlightColor, 0.9f));
+            colorChanged = true;
+        }
         
-        // Emission 색상 설정 (여러 방법 시도)
-        newMaterial.SetColor("_EmissionColor", highlightColor * highlightIntensity);
-        newMaterial.SetFloat("_EmissionScaleUI", highlightIntensity);
-        
-        // Global Illumination 설정 (중요!)
-        newMaterial.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+        // 방법 2: Emission도 시도 (Built-in Standard)
+        if (newMaterial.HasProperty("_EmissionColor"))
+        {
+            newMaterial.EnableKeyword("_EMISSION");
+            newMaterial.SetColor("_EmissionColor", highlightColor * highlightIntensity);
+            newMaterial.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+        }
+        else if (newMaterial.HasProperty("_Emission"))
+        {
+            newMaterial.EnableKeyword("_EMISSION");
+            newMaterial.SetColor("_Emission", highlightColor * highlightIntensity);
+        }
         
         // 머티리얼 적용
         renderer.material = newMaterial;

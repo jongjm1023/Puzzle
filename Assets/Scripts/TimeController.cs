@@ -10,159 +10,147 @@ public class TimeController : MonoBehaviour
     [Tooltip("키를 눌러 시간을 멈춥니다.")]
     public Key freezeKey = Key.Q;
     
-    void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
     [Header("References")]
     public PlayerController player;
 
+    // 현재 시간이 멈췄는지 확인하는 프로퍼티
+    public bool IsTimeFrozen => StateManager.Instance != null && StateManager.Instance.CurrentState() == State.TimeFreeze;
+
+    void Awake()
+    {
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
+    }
+    
     void Start()
     {
-        if (player == null)
-        {
-            player = FindObjectOfType<PlayerController>();
-        }
+        if (player == null) player = FindObjectOfType<PlayerController>();
     }
     
     void Update()
     {
-        // Input System은 timeScale 영향 안받음
+        // 키 입력 감지 (Input System 패키지 사용 시)
         if (Keyboard.current != null && Keyboard.current[freezeKey].wasPressedThisFrame)
         {
-            if (StateManager.Instance.CurrentState() == State.TimeFreeze)
+            if (IsTimeFrozen)
             {
-                // 이미 멈춰있으면 재개 (역행 없이)
-                ResumeTime();
+                // 이미 멈춰있으면 그냥 재개 (타겟 없이)
+                ResumeTime(); 
             }
             else
             {
-                // 시간 멈춤
+                // 시간 멈춤 시도
                 FreezeTime();
             }
         }
     }
     
-    public bool IsTimeFrozen => StateManager.Instance.CurrentState() == State.TimeFreeze;
-    
     public void FreezeTime()
     {
-        // 상태 체크
-        if (!StateManager.Instance.CanUseAbility())
+        // 1. 상태 및 조건 체크
+        if (StateManager.Instance == null || !StateManager.Instance.CanUseAbility())
         {
-            Debug.LogWarning("다른 능력 사용 중입니다!");
+            Debug.LogWarning("다른 능력 사용 중이거나 상태 매니저가 없습니다!");
             return;
         }
 
-        // [추가] 지상 체크
         if (player != null && !player.IsGrounded())
         {
             Debug.LogWarning("공중에서는 능력을 사용할 수 없습니다!");
             return;
         }
         
+        // 2. 시간 정지 수행
         Time.timeScale = 0f;
-        
-        // 상태 변경
         StateManager.Instance.SetState(State.TimeFreeze);
-        
-        // 마우스 커서 표시 및 잠금 해제
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        ToggleCursor(true); // 커서 보이기
         
         Debug.Log("시간이 멈췄습니다.");
     }
     
+    // rewindTarget이 null이면 단순 재개, 있으면 역행 시작
     public void ResumeTime(GameObject rewindTarget = null)
     {
         if (rewindTarget != null)
         {
-            // 오브젝트 클릭 시 - 역행 시작
             StartRewind(rewindTarget);
         }
         else
         {
-            // 단순 재개 (Q키 다시 누름)
-            Time.timeScale = 1f;
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            // 상태 초기화
-            StateManager.Instance.SetState(State.Normal);
-
+            // 단순 재개
+            SetNormalState();
             Debug.Log("시간이 재개되었습니다.");
         }
     }
 
-    void StartRewind(GameObject target)
+    private void StartRewind(GameObject target)
     {
-        // 시간 재개
-        Time.timeScale = 1f;
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        // 오브젝트를 되감기처럼 역행 시작 (비동기)
-        float rewindSeconds = TimeRewindManager.Instance.rewindDuration;
-        bool rewindStarted = TimeRewindManager.Instance.RewindObject(target, rewindSeconds);
-
-        if (!rewindStarted)
-        {
-            // 역행 시작 실패 - 상태를 정상으로 복귀
-            StateManager.Instance.SetState(State.Normal);
-            
-            // 실패 원인 확인을 위해 상세 정보 출력
-            Rigidbody rb = target.GetComponent<Rigidbody>();
-            if (rb == null) rb = target.GetComponentInParent<Rigidbody>();
-            if (rb == null) rb = target.GetComponentInChildren<Rigidbody>();
-            
-            if (rb == null)
-            {
-                Debug.LogWarning($"{target.name}의 역행을 시작할 수 없습니다: Rigidbody를 찾을 수 없습니다.");
-            }
-            else if (!TimeRewindManager.Instance.IsTracked(rb))
-            {
-                Debug.LogWarning($"{target.name}의 역행을 시작할 수 없습니다: {rb.gameObject.name}는 추적 중인 오브젝트가 아닙니다. (현재 Kinematic: {rb.isKinematic}, 추적 목록에 없음)");
-            }
-            else
-            {
-                int recordCount = TimeRewindManager.Instance.GetRecordedStateCount(rb);
-                Debug.LogWarning($"{target.name}의 역행을 시작할 수 없습니다: {rb.gameObject.name}의 기록된 상태가 없습니다. (기록 개수: {recordCount})");
-            }
-            return;
-        }
-
-        // 상태 변경 (역행 시작)
-        StateManager.Instance.SetState(State.TimeRewind);
-
-        // 역행은 코루틴으로 비동기 실행되므로 여기서는 상태만 설정
-        // 역행 완료는 TimeRewindManager에서 처리
-        Debug.Log($"{target.name}의 역행을 시작합니다. ({rewindSeconds}초 전으로 되감기)");
+        // 1. 매니저 설정값 가져오기
+        float duration = TimeRewindManager.Instance.rewindDuration;
         
-        // 역행 완료를 기다리는 코루틴 시작
-        StartCoroutine(WaitForRewindComplete());
+        // 2. 역행 시도 (매니저 호출)
+        bool success = TimeRewindManager.Instance.RewindObject(target, duration);
+
+        if (success)
+        {
+            // 성공 시: 시간을 다시 흐르게 하고 역행 상태로 전환
+            Time.timeScale = 1f;
+            ToggleCursor(false);
+            StateManager.Instance.SetState(State.TimeRewind);
+            
+            Debug.Log($"{target.name} 역행 시작 ({duration}초)");
+            StartCoroutine(WaitForRewindComplete());
+        }
+        else
+        {
+            // 실패 시: 즉시 일반 상태로 복귀 및 에러 로그
+            SetNormalState();
+            LogRewindFailure(target);
+        }
     }
 
-    // 역행이 완료될 때까지 기다린 후 상태를 정상으로 복귀
+    // 역행이 끝날 때까지 대기하는 코루틴
     IEnumerator WaitForRewindComplete()
     {
-        // TimeRewindManager가 역행 중인지 확인
+        // 매니저가 역행 중이라고 하는 동안 대기
         while (TimeRewindManager.Instance != null && TimeRewindManager.Instance.IsRewinding)
         {
             yield return null;
         }
 
-        // 역행 완료 후 정상 상태로 복귀
+        // 끝났으면 정상 상태로
         StateManager.Instance.SetState(State.Normal);
-        Debug.Log("역행이 완료되었습니다.");
+        Debug.Log("역행 완료. 정상 상태 복귀.");
+    }
+
+    // [헬퍼] 정상 상태(게임 플레이)로 되돌리기
+    private void SetNormalState()
+    {
+        Time.timeScale = 1f;
+        StateManager.Instance.SetState(State.Normal);
+        ToggleCursor(false);
+    }
+
+    // [헬퍼] 커서 잠금/해제 통합 관리
+    private void ToggleCursor(bool show)
+    {
+        Cursor.visible = show;
+        Cursor.lockState = show ? CursorLockMode.None : CursorLockMode.Locked;
+    }
+
+    // [헬퍼] 역행 실패 원인 분석 로그 (디버깅용)
+    private void LogRewindFailure(GameObject target)
+    {
+        // Rigidbody 찾기 로직 (부모/자식 포함)
+        Rigidbody rb = target.GetComponent<Rigidbody>();
+        if (!rb) rb = target.GetComponentInParent<Rigidbody>();
+        if (!rb) rb = target.GetComponentInChildren<Rigidbody>();
+
+        string msg = $"{target.name} 역행 실패: ";
+        if (rb == null) msg += "Rigidbody 없음";
+        else if (!TimeRewindManager.Instance.IsTracked(rb)) msg += "추적 대상 아님 (Kinematic 여부 확인)";
+        else msg += $"기록 없음 (Count: {TimeRewindManager.Instance.GetRecordedStateCount(rb)})";
+
+        Debug.LogWarning(msg);
     }
 }
