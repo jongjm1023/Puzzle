@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Collections;
 
@@ -37,7 +38,7 @@ public class TimeRewindManager : MonoBehaviour
 
     private bool isRewinding = false;
     private Coroutine rewindCoroutine = null;
-    private MonoBehaviour disabledComponentBuffer; 
+    private MonoBehaviour disabledComponentBuffer;
 
     public bool IsRewinding => isRewinding;
 
@@ -51,6 +52,33 @@ public class TimeRewindManager : MonoBehaviour
     {
         FindAllTrackableObjects();
         StartCoroutine(RecordLoop());
+        // 씬 로드 이벤트 구독
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 씬 리로드 시 진행 중인 Rewind 중단 및 상태 초기화
+        if (isRewinding)
+        {
+            if (rewindCoroutine != null)
+            {
+                StopCoroutine(rewindCoroutine);
+                rewindCoroutine = null;
+            }
+            
+            // Rewind 상태 초기화
+            isRewinding = false;
+            disabledComponentBuffer = null;
+        }
+        
+        // 씬 리로드 시 모든 오브젝트를 다시 찾음
+        FindAllTrackableObjects();
     }
 
     // Time.timeScale이 0일 때 WaitForSeconds도 멈추므로 별도의 정지 체크 불필요
@@ -101,6 +129,23 @@ public class TimeRewindManager : MonoBehaviour
             while (history.Count > 0 && (currentTime - history.Peek().timeStamp) > maxRecordTime)
             {
                 history.Dequeue();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rigidbody를 추적 목록에 추가합니다. 외부에서 호출 가능합니다.
+    /// 레이어 필터링이 적용됩니다.
+    /// </summary>
+    public void AddTrackableObject(Rigidbody rb)
+    {
+        if (rb != null && !trackedObjects.Contains(rb))
+        {
+            // 레이어 필터링
+            if (((1 << rb.gameObject.layer) & trackableLayers) != 0)
+            {
+                trackedObjects.Add(rb);
+                objectHistories[rb] = new Queue<ObjectState>();
             }
         }
     }
@@ -159,7 +204,7 @@ public class TimeRewindManager : MonoBehaviour
             yield return null;
         }
 
-        if (targetRb != null)
+        if (targetRb != null && objectHistories.ContainsKey(targetRb))
         {
             Queue<ObjectState> q = objectHistories[targetRb];
             q.Clear();

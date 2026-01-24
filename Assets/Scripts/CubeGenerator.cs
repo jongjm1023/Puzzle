@@ -53,5 +53,21 @@ public class CubeGenerator : MonoBehaviour
         {
             Debug.LogWarning("CubeGenerator: 'Map' object not found in the scene!");
         }
+
+        // 6. Register the new cube with TimeRewindManager
+        Rigidbody rb = currentCube.GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = currentCube.GetComponentInChildren<Rigidbody>();
+        }
+        if (rb == null)
+        {
+            rb = currentCube.GetComponentInParent<Rigidbody>();
+        }
+
+        if (rb != null && TimeRewindManager.Instance != null)
+        {
+            TimeRewindManager.Instance.AddTrackableObject(rb);
+        }
     }
 }

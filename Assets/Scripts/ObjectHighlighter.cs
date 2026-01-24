@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ObjectHighlighter : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class ObjectHighlighter : MonoBehaviour
     public LayerMask highlightLayer = -1; // 모든 레이어
     
     private Renderer lastHighlighted;
-    private Material originalMaterial;
+    private Dictionary<Renderer, Material> originalMaterials = new Dictionary<Renderer, Material>();
     private Material highlightMaterial;
     private TimeController timeController;
     
@@ -43,65 +44,74 @@ public class ObjectHighlighter : MonoBehaviour
     {
         while (true)
         {
+            // 참조가 없으면 다시 찾기
+            if (timeController == null)
+                timeController = TimeController.Instance;
+            if (mainCamera == null)
+                mainCamera = Camera.main;
+            
             // 시간 정지 상태에서만 작동 (TimeFreeze)
-            if (StateManager.Instance.CurrentState() == State.TimeFreeze)
+            if (StateManager.Instance != null && StateManager.Instance.CurrentState() == State.TimeFreeze)
             {
                 // 마우스 위치에서 레이캐스트
-                Vector2 mousePos = Mouse.current.position.ReadValue();
-                Ray ray = mainCamera.ScreenPointToRay(mousePos);
-                
-                // RaycastAll을 사용하여 non-convex collider도 감지
-                RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, highlightLayer);
-                
-                if (hits.Length > 0)
+                if (Mouse.current != null && mainCamera != null)
                 {
-                    // 가장 가까운 hit 찾기
-                    RaycastHit closestHit = hits[0];
-                    float closestDistance = hits[0].distance;
+                    Vector2 mousePos = Mouse.current.position.ReadValue();
+                    Ray ray = mainCamera.ScreenPointToRay(mousePos);
                     
-                    for (int i = 1; i < hits.Length; i++)
+                    // RaycastAll을 사용하여 non-convex collider도 감지
+                    RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, highlightLayer);
+                    
+                    if (hits.Length > 0)
                     {
-                        if (hits[i].distance < closestDistance)
+                        // 가장 가까운 hit 찾기
+                        RaycastHit closestHit = hits[0];
+                        float closestDistance = hits[0].distance;
+                        
+                        for (int i = 1; i < hits.Length; i++)
                         {
-                            closestDistance = hits[i].distance;
-                            closestHit = hits[i];
+                            if (hits[i].distance < closestDistance)
+                            {
+                                closestDistance = hits[i].distance;
+                                closestHit = hits[i];
+                            }
+                        }
+                        
+                        Renderer renderer = closestHit.collider.GetComponent<Renderer>();
+                        
+                        if (renderer != null && renderer != lastHighlighted)
+                        {
+                            // 이전 하이라이트 제거
+                            if (lastHighlighted != null)
+                                RemoveHighlight(lastHighlighted);
+                            
+                            // 새 하이라이트 적용
+                            ApplyHighlight(renderer);
+                            lastHighlighted = renderer;
+                        }
+                        
+                        // 클릭 감지 (Input System은 timeScale 영향 안받음)
+                        if (Mouse.current.leftButton.wasPressedThisFrame && timeController != null)
+                        {
+                            // 시간 재개 및 역행 시작
+                            timeController.ResumeTime(closestHit.collider.gameObject);
+                            
+                            // 하이라이트 제거
+                            if (lastHighlighted != null)
+                            {
+                                RemoveHighlight(lastHighlighted);
+                                lastHighlighted = null;
+                            }
                         }
                     }
-                    
-                    Renderer renderer = closestHit.collider.GetComponent<Renderer>();
-                    
-                    if (renderer != null && renderer != lastHighlighted)
+                    else
                     {
-                        // 이전 하이라이트 제거
-                        if (lastHighlighted != null)
-                            RemoveHighlight(lastHighlighted);
-                        
-                        // 새 하이라이트 적용
-                        ApplyHighlight(renderer);
-                        lastHighlighted = renderer;
-                    }
-                    
-                    // 클릭 감지 (Input System은 timeScale 영향 안받음)
-                    if (Mouse.current.leftButton.wasPressedThisFrame)
-                    {
-                        // 시간 재개 및 역행 시작
-                        timeController.ResumeTime(closestHit.collider.gameObject);
-                        
-                        // 하이라이트 제거
+                        // 아무것도 안 맞으면 하이라이트 제거
                         if (lastHighlighted != null)
                         {
                             RemoveHighlight(lastHighlighted);
                             lastHighlighted = null;
                         }
-                    }
-                }
-                else
-                {
-                    // 아무것도 안 맞으면 하이라이트 제거
-                    if (lastHighlighted != null)
-                    {
-                        RemoveHighlight(lastHighlighted);
-                        lastHighlighted = null;
                     }
                 }
             }
@@ -123,14 +133,20 @@ public class ObjectHighlighter : MonoBehaviour
     {
         if (renderer == null) return;
         
+        // 이미 하이라이트된 경우 스킵
+        if (originalMaterials.ContainsKey(renderer)) return;
+        
         // 원본 머티리얼 저장
-        originalMaterial = renderer.sharedMaterial;
+        Material originalMaterial = renderer.sharedMaterial;
         
         if (originalMaterial == null)
         {
             Debug.LogWarning($"ObjectHighlighter: {renderer.gameObject.name}에 머티리얼이 없습니다!");
             return;
         }
+        
+        // 원본 머티리얼을 딕셔너리에 저장
+        originalMaterials[renderer] = originalMaterial;
         
         // 새 머티리얼 인스턴스 생성
         Material newMaterial = new Material(renderer.sharedMaterial);
@@ -177,17 +193,34 @@ public class ObjectHighlighter : MonoBehaviour
     
     void RemoveHighlight(Renderer renderer)
     {
-        if (renderer == null || originalMaterial == null) return;
+        if (renderer == null) return;
         
-        // 원본 머티리얼 복원
-        renderer.material = originalMaterial;
+        // 딕셔너리에서 원본 머티리얼 찾기
+        if (originalMaterials.ContainsKey(renderer))
+        {
+            // 원본 머티리얼 복원
+            renderer.material = originalMaterials[renderer];
+            
+            // 딕셔너리에서 제거
+            originalMaterials.Remove(renderer);
+        }
     }
     
     void OnDestroy()
     {
-        // 하이라이트 제거
+        // 모든 하이라이트 제거
         if (lastHighlighted != null)
             RemoveHighlight(lastHighlighted);
+        
+        // 딕셔너리에 남아있는 모든 하이라이트 제거
+        foreach (var kvp in originalMaterials)
+        {
+            if (kvp.Key != null)
+            {
+                kvp.Key.material = kvp.Value;
+            }
+        }
+        originalMaterials.Clear();
             
         // 머티리얼 정리
         if (highlightMaterial != null)

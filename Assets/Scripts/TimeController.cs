@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class TimeController : MonoBehaviour
@@ -23,6 +24,32 @@ public class TimeController : MonoBehaviour
     }
     
     void Start()
+    {
+        FindPlayer();
+        // 씬 로드 이벤트 구독
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 씬 리로드 시 참조 다시 찾기
+        FindPlayer();
+        // 씬 리로드 시 상태 초기화
+        if (StateManager.Instance != null)
+        {
+            StateManager.Instance.SetState(State.Normal);
+        }
+        // 시간 스케일 초기화
+        Time.timeScale = 1f;
+        ToggleCursor(false);
+    }
+
+    void FindPlayer()
     {
         if (player == null) player = FindObjectOfType<PlayerController>();
     }
