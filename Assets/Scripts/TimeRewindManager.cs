@@ -50,6 +50,7 @@ public class TimeRewindManager : MonoBehaviour
     private bool isRewinding = false;
     private Rigidbody currentRewindTarget = null;
     private Coroutine rewindCoroutine = null;
+    private GearRotator currentRewindGearRotator = null; // 역행 중인 Gear의 GearRotator
 
     /// <summary>
     /// 현재 역행 중인지 여부
@@ -103,12 +104,9 @@ public class TimeRewindManager : MonoBehaviour
             // 레이어 필터링
             if (trackableLayers == (trackableLayers | (1 << rb.gameObject.layer)))
             {
-                // Kinematic이 아닌 것만 추적 (움직일 수 있는 것만)
-                if (!rb.isKinematic)
-                {
-                    trackedObjects.Add(rb);
-                    objectHistories[rb] = new Queue<ObjectState>();
-                }
+                // 모든 Rigidbody 추적 (Kinematic 포함)
+                trackedObjects.Add(rb);
+                objectHistories[rb] = new Queue<ObjectState>();
             }
         }
 
@@ -162,25 +160,22 @@ public class TimeRewindManager : MonoBehaviour
                 continue;
             }
 
-            // 역행 중인 오브젝트는 kinematic이어도 추적 목록에 유지하고 기록만 하지 않음
+            // 역행 중인 오브젝트는 기록하지 않음
             if (isRewinding && currentRewindTarget == rb)
             {
                 continue;
             }
 
-            // Kinematic이 되었으면 추적 중지 (단, 역행 중인 오브젝트는 제외)
-            if (rb.isKinematic)
-            {
-                toRemove.Add(rb);
-                continue;
-            }
-
             // 현재 상태 기록
+            // Kinematic 오브젝트는 velocity가 0이지만 위치와 회전은 기록
+            Vector3 linVel = rb.isKinematic ? Vector3.zero : rb.linearVelocity;
+            Vector3 angVel = rb.isKinematic ? Vector3.zero : rb.angularVelocity;
+            
             ObjectState state = new ObjectState(
                 rb.position,
                 rb.rotation,
-                rb.linearVelocity,
-                rb.angularVelocity,
+                linVel,
+                angVel,
                 relativeTime
             );
 
@@ -218,12 +213,8 @@ public class TimeRewindManager : MonoBehaviour
             // 레이어 필터링
             if (trackableLayers == (trackableLayers | (1 << rb.gameObject.layer)))
             {
-                // Kinematic이 아닌 것만 추적 (움직일 수 있는 것만)
-                if (!rb.isKinematic)
-                {
-                    // 새로운 오브젝트 발견 - 추적 목록에 추가
-                    AddTrackableObject(rb);
-                }
+                // 새로운 오브젝트 발견 - 추적 목록에 추가 (Kinematic 포함)
+                AddTrackableObject(rb);
             }
         }
     }
@@ -288,6 +279,13 @@ public class TimeRewindManager : MonoBehaviour
         // 원래 상태 저장
         bool wasKinematic = targetRb.isKinematic;
         bool wasGravity = targetRb.useGravity;
+        
+        // GearRotator 컴포넌트 찾기 (역행 중 비활성화하여 회전 간섭 방지)
+        currentRewindGearRotator = targetRb.GetComponent<GearRotator>();
+        if (currentRewindGearRotator != null)
+        {
+            currentRewindGearRotator.enabled = false;
+        }
 
         // 역행 중에는 kinematic으로 설정하여 물리 엔진의 간섭을 완전히 차단
         targetRb.isKinematic = true;
@@ -326,6 +324,7 @@ public class TimeRewindManager : MonoBehaviour
             {
                 isRewinding = false;
                 currentRewindTarget = null;
+                currentRewindGearRotator = null;
                 rewindCoroutine = null;
                 Debug.Log("TimeRewindManager: 역행 대상이 파괴되어 역행을 중단합니다.");
                 yield break;
@@ -367,6 +366,7 @@ public class TimeRewindManager : MonoBehaviour
         {
             isRewinding = false;
             currentRewindTarget = null;
+            currentRewindGearRotator = null;
             rewindCoroutine = null;
             Debug.Log("TimeRewindManager: 역행 대상이 파괴되어 역행을 중단합니다.");
             yield break;
@@ -395,6 +395,13 @@ public class TimeRewindManager : MonoBehaviour
         // 물리 엔진 싱크 대기
         yield return new WaitForFixedUpdate();
 
+        // GearRotator 복원
+        if (currentRewindGearRotator != null)
+        {
+            currentRewindGearRotator.enabled = true;
+            currentRewindGearRotator = null;
+        }
+        
         // Kinematic 상태 복원
         targetRb.isKinematic = wasKinematic;
         targetRb.useGravity = wasGravity;
@@ -418,6 +425,7 @@ public class TimeRewindManager : MonoBehaviour
         // 역행 완료
         isRewinding = false;
         currentRewindTarget = null;
+        currentRewindGearRotator = null;
         rewindCoroutine = null;
 
         Debug.Log($"TimeRewindManager: {targetRb.gameObject.name}의 역행이 완료되었습니다. (기록 시간: {finalState.timeStamp:F2}초, 남은 기록: {history.Count}개)");
@@ -429,6 +437,13 @@ public class TimeRewindManager : MonoBehaviour
     private void RestoreRigidbodyState(Rigidbody rb, bool wasKinematic, bool wasGravity)
     {
         if (rb == null) return;
+        
+        // GearRotator 복원
+        if (currentRewindGearRotator != null)
+        {
+            currentRewindGearRotator.enabled = true;
+            currentRewindGearRotator = null;
+        }
         
         rb.isKinematic = wasKinematic;
         rb.useGravity = wasGravity;
@@ -442,7 +457,7 @@ public class TimeRewindManager : MonoBehaviour
     /// </summary>
     public void AddTrackableObject(Rigidbody rb)
     {
-        if (rb != null && !rb.isKinematic && !trackedObjects.Contains(rb))
+        if (rb != null && !trackedObjects.Contains(rb))
         {
             trackedObjects.Add(rb);
             objectHistories[rb] = new Queue<ObjectState>();
