@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
     [Tooltip("Movement speed of the player.")]
-    private float moveSpeed = 8.0f;
+    public float moveSpeed = 8.0f;
 
     [Tooltip("Rotation speed when turning.")]
     public float rotationSpeed = 10.0f;
@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
         
         // Ensure the Rigidbody doesn't tip over and is simulation-driven
         rb.freezeRotation = true;
-
+        
         // Try to find the main camera
         if (Camera.main != null)
         {
@@ -164,13 +164,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    [Header("Physics Movement Settings")]
+    [Tooltip("How fast the player accelerates.")]
+    public float acceleration = 60.0f;
+    
+    [Tooltip("How fast the player stops.")]
+    public float deceleration = 40.0f;
+
     void HandleMovement()
     {
         Vector3 moveDirection = Vector3.zero;
 
+        // 1. Calculate Input Direction
         if (cameraTransform != null)
         {
-            // Camera-relative movement
             Vector3 forward = cameraTransform.forward;
             Vector3 right = cameraTransform.right;
             forward.y = 0f;
@@ -185,21 +192,40 @@ public class PlayerController : MonoBehaviour
             moveDirection = new Vector3(horizontalInput, 0f, verticalInput);
         }
 
-        // Apply movement force
-        if (moveDirection.magnitude >= 0.1f)
+        // 2. Apply Movement
+        if (moveDirection.sqrMagnitude >= 0.01f)
         {
-            anim.SetFloat("Speed", 10f);
             moveDirection.Normalize();
 
-            // Rotate character
+            // Rotate
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
             
-            transform.position += moveDirection * moveSpeed * Time.deltaTime;
+            anim.SetFloat("Speed", 10f);
+
+            // Calculate horizontal speed
+            Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+            
+            // Limit Speed: Only add force if below Max Speed
+            if (horizontalVelocity.magnitude < moveSpeed)
+            {
+                rb.AddForce(moveDirection * acceleration, ForceMode.Force);
+            }
         }
-        else
-        {
+        else{
             anim.SetFloat("Speed", 0f);
         }
+    }
+
+
+    // Called by Animation Event 'Run_N_Land'
+    public void OnLand()
+    {
+        // Placeholder to prevent "has no receiver" error
+        // You can add footstep sounds or particles here if needed
+    }
+
+    public void OnFootstep()
+    {
     }
 }
