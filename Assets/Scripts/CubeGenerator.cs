@@ -42,5 +42,16 @@ public class CubeGenerator : MonoBehaviour
 
         // 4. Instantiate new cube
         currentCube = Instantiate(cubePrefab, finalPosition, finalRotation);
+
+        // 5. Parent to 'map' object
+        GameObject mapObject = GameObject.Find("Map");
+        if (mapObject != null)
+        {
+            currentCube.transform.SetParent(mapObject.transform);
+        }
+        else
+        {
+            Debug.LogWarning("CubeGenerator: 'Map' object not found in the scene!");
+        }
     }
 }
