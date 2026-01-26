@@ -168,7 +168,7 @@ MonoBehaviour:
   extendSpeed: 200
   returnSpeed: 30
   resetDelay: 1
-  launchForce: 20
+  launchForce: 40
   localLaunchDirection: {x: 1, y: 0, z: 0}
 --- !u!1001 &1560009189178562502
 PrefabInstance:
