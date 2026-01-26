@@ -43,16 +43,16 @@ public class MapFlipper : MonoBehaviour
     {
         StateManager.Instance.SetState(State.MapFlip);
 
-        // [중요 1] 시간 정지 (원래 속도 저장)
+        // 시간 정지
         float originalTimeScale = Time.timeScale;
         Time.timeScale = 0f;
 
         isGravityInverted = !isGravityInverted;
 
-        // A. 물리 설정
+        // 물리 설정
         Physics.gravity = isGravityInverted ? -defaultGravity : defaultGravity;
 
-        // B. 목표값 설정
+        // 목표값 설정
         float startCamRoll = cameraFollow.targetZRoll;
         float endCamRoll = isGravityInverted ? 180f : 0f;
 
@@ -62,12 +62,12 @@ public class MapFlipper : MonoBehaviour
         Vector3 targetUp = -gravityDir;
         Quaternion endPlayerRot = Quaternion.LookRotation(currentForward, targetUp);
 
-        // C. 애니메이션 실행
+        // 애니메이션 실행
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            // [중요 2] 시간이 멈춰있으므로 unscaledDeltaTime 사용
-            // 이걸 안 쓰면 elapsed가 증가하지 않아 무한 루프에 빠짐
+            // 시간이 멈춰있으므로 unscaledDeltaTime 사용
+            // 안 쓰면 elapsed가 증가하지 않아 무한 루프
             elapsed += Time.unscaledDeltaTime; 
             
             float t = elapsed / duration;
@@ -81,11 +81,11 @@ public class MapFlipper : MonoBehaviour
             yield return null; 
         }
 
-        // D. 마무리
+        // 마무리
         cameraFollow.targetZRoll = endCamRoll;
         player.transform.rotation = endPlayerRot;
 
-        // [중요 3] 시간 복구
+        // 시간 복구
         Time.timeScale = originalTimeScale;
 
         StateManager.Instance.SetState(State.Normal);

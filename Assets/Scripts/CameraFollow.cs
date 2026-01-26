@@ -23,7 +23,10 @@ public class CameraFollow : MonoBehaviour
         Vector3 angles = transform.eulerAngles;
         currentYaw = angles.y;
         currentPitch = angles.x;
-        // Cursor settings...
+        
+        // 게임 시작 시 커서 숨기고 잠금
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void LateUpdate()
