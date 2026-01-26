@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1899560212318730828}
   - component: {fileID: 2763687145948166959}
   - component: {fileID: 8255201796941050127}
-  - component: {fileID: 3299054103216065135}
+  - component: {fileID: -7031458435797844599}
   m_Layer: 0
   m_Name: Belt
   m_TagString: Untagged
@@ -98,7 +98,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8647989237384328512}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 654a803defc05bb4e8f3f269205b8bf3, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -112,7 +112,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3299054103216065135
+--- !u!114 &-7031458435797844599
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -121,9 +121,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8647989237384328512}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b91c3983c286984d8e67b2ff5db9442, type: 3}
+  m_Script: {fileID: 11500000, guid: 0349980c9e86f47829908d8fcb1e0b85, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ConveyorBelt
-  speed: 4
-  beltRenderer: {fileID: 2763687145948166959}
+  m_EditorClassIdentifier: Assembly-CSharp::RealBelt
+  speed: 5
+  beltRenderer: {fileID: 0}
   textureName: _BaseMap
+  visualSpeedMultiplier: 0.03
