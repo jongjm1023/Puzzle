@@ -6,8 +6,34 @@ public class AntiGravityFan : MonoBehaviour
     [Tooltip("Damping factor to prevent sliding (air resistance).")]
     public float damping = 2.0f;
 
+    [Tooltip("Particle System to play when fan is active.")]
+    public ParticleSystem fanParticles;
+
+    public bool isFanOn=false;
+    
     // Track Rigidbodies and the number of their colliders inside the trigger
     private Dictionary<Rigidbody, int> containedRigidbodies = new Dictionary<Rigidbody, int>();
+
+    private void Start()
+    {
+        if (fanParticles != null)
+        {
+            if (isFanOn) fanParticles.Play();
+            else fanParticles.Stop();
+        }
+    }
+
+    public void SetFanActive()
+    {
+        isFanOn = true;
+        if (fanParticles != null) fanParticles.Play();
+    }
+
+    public void SetFanInactive()
+    {
+        isFanOn = false;
+        if (fanParticles != null) fanParticles.Stop();
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -57,7 +83,10 @@ public class AntiGravityFan : MonoBehaviour
                 continue;
             }
 
-            ApplyFanForce(rb);
+            if (isFanOn)
+            {
+                ApplyFanForce(rb);
+            }
         }
 
         // Cleanup destroyed objects
@@ -88,7 +117,15 @@ public class AntiGravityFan : MonoBehaviour
     private void OnDrawGizmos()
     {
         // Visualize the fan's direction
-        Gizmos.color = new Color(0f, 1f, 1f, 0.5f); // Cyan with transparency
+        if (Application.isPlaying && !isFanOn)
+        {
+             Gizmos.color = new Color(0.5f, 0.5f, 0.5f, 0.3f); // Gray when off
+        }
+        else
+        {
+             Gizmos.color = new Color(0f, 1f, 1f, 0.5f); // Cyan with transparency
+        }
+        
         Gizmos.DrawRay(transform.position, transform.up * 2f);
         Gizmos.DrawWireCube(transform.position + transform.up, Vector3.one * 0.5f);
     }

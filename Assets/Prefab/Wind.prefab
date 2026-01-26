@@ -4984,7 +4984,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a9de2a6ddb6cda499857dbc353acd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AntiGravityFan
-  damping: 2
+  damping: 4
+  fanParticles: {fileID: 650326625926591477}
+  isFanOn: 0
 --- !u!1001 &4066707580278967964
 PrefabInstance:
   m_ObjectHideFlags: 0
