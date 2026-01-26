@@ -5,6 +5,8 @@ public class Laser : MonoBehaviour
     public Transform targetPoint; // 반대편 Receiver
     public string targetTag = "Player"; // 감지할 대상의 태그
 
+    private float laserRadius = 0.4f; // 레이저 감지 두께
+
     private LineRenderer lineRenderer;
 
     void Start()
@@ -29,10 +31,10 @@ public class Laser : MonoBehaviour
         Vector3 direction = targetPoint.position - transform.position;
         float maxDistance = direction.magnitude; // Receiver까지의 거리
 
-        // 3. 레이캐스트 발사 (보이지 않는 광선 쏘기)
+        // 3. 스피어캐스트 발사 (두께가 있는 레이저)
         RaycastHit hit;
-        // 내 위치에서, 타겟 방향으로, 타겟까지의 거리만큼 쏨
-        if (Physics.Raycast(transform.position, direction, out hit, maxDistance))
+        // 내 위치에서, 타겟 방향으로, 타겟까지의 거리만큼, 반지름 laserRadius로 쏨
+        if (Physics.SphereCast(transform.position, laserRadius, direction, out hit, maxDistance))
         {
             // 무언가에 닿았다면?
             
