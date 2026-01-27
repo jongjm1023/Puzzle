@@ -17,7 +17,8 @@ public class Booster : MonoBehaviour
         {
             // 속도에 비례
             float offset = Time.time * boostForce * scrollSpeedMultiplier;
-            beltRenderer.material.SetTextureOffset(textureName, new Vector2(offset, 0));
+            float currentOffsetY = beltRenderer.material.GetTextureOffset(textureName).y;
+            beltRenderer.material.SetTextureOffset(textureName, new Vector2(offset, currentOffsetY));
         }
     }
 
