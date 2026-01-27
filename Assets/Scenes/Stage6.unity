@@ -341,7 +341,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6117373827856428309, guid: e148fbc93f5d1cd46bb52e04442dc656, type: 3}
       propertyPath: upwardAcceleration
-      value: 20
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8679830899806850941, guid: e148fbc93f5d1cd46bb52e04442dc656, type: 3}
       propertyPath: m_LocalScale.x
