@@ -2237,6 +2237,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Wind
       objectReference: {fileID: 0}
+    - target: {fileID: 6117373827856428309, guid: e148fbc93f5d1cd46bb52e04442dc656, type: 3}
+      propertyPath: isFanOn
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6117373827856428309, guid: e148fbc93f5d1cd46bb52e04442dc656, type: 3}
+      propertyPath: upwardAcceleration
+      value: 17
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

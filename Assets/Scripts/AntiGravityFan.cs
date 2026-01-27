@@ -11,6 +11,10 @@ public class AntiGravityFan : MonoBehaviour
 
     public bool isFanOn=false;
     
+    
+    [Tooltip("Extra upward acceleration in addition to gravity cancellation.")]
+    public float upwardAcceleration = 17.0f;
+
     // Track Rigidbodies and the number of their colliders inside the trigger
     private Dictionary<Rigidbody, int> containedRigidbodies = new Dictionary<Rigidbody, int>();
 
@@ -99,11 +103,12 @@ public class AntiGravityFan : MonoBehaviour
         }
     }
 
+
     private void ApplyFanForce(Rigidbody rb)
     {
-        // Calculate force magnitude: |gravity| * mass
-        // This ensures F = mg, so a = g
-        float forceMagnitude = Physics.gravity.magnitude * rb.mass;
+        // Calculate force magnitude: (|gravity| + upwardAcceleration) * mass
+        // This ensures F_net = m * (g - g + a_up) = m * a_up
+        float forceMagnitude = (Physics.gravity.magnitude + upwardAcceleration) * rb.mass;
         
         // Apply force in the fan's up direction
         Vector3 upForce = transform.up * forceMagnitude;
