@@ -9,7 +9,7 @@ public class CameraFollow : MonoBehaviour
     [Header("Settings")]
     public Vector3 offset = new Vector3(0, 5, -10);
     public float sensitivity = 0.5f;
-    private Vector2 pitchLimits = new Vector2(-70, 60);
+    private Vector2 pitchLimits = new Vector2(-85, 60);
 
     // [추가] 외부에서 제어할 Z축 회전값 (0 = 정상, 180 = 뒤집힘)
     [HideInInspector] 
