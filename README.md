@@ -1,7 +1,6 @@
 # 팀원 소개
 
 <aside>
-✅
 
 ### 이종민
 
@@ -12,7 +11,6 @@ https://github.com/jongjm1023
 </aside>
 
 <aside>
-✅
 
 ### 김현수
 
@@ -22,7 +20,7 @@ https://github.com/rhkdlfla
 
 </aside>
 
-# ****Reverse & Rewind
+# Reverse & Rewind
 
 > 공간을 뒤집고 시간을 돌려서 탈출하라
 > 
@@ -31,61 +29,41 @@ https://github.com/rhkdlfla
 
 # 메인 기능
 
-# MapReverse
+MapReverse
 
-# TimeRewind
+TimeRewind
 
 # 오브젝트
 
 - 스위치
-    
-    ![스크린샷 2026-01-28 144142.png](attachment:756137ed-b95f-435a-a5c6-ebbbed8bf588:스크린샷_2026-01-28_144142.png)
-    
+    <img width="255" height="146" alt="스크린샷 2026-01-28 144142" src="https://github.com/user-attachments/assets/610e03a8-2d5f-4991-a011-53f1dce9040b" />
 
 - 톱니바퀴
-    
-    ![스크린샷 2026-01-28 144356.png](attachment:b445f0da-b162-4938-829c-fa87fdda756b:스크린샷_2026-01-28_144356.png)
-    
+    <img width="572" height="440" alt="스크린샷 2026-01-28 144356" src="https://github.com/user-attachments/assets/9454bbc0-76c4-4918-b8ff-76a360e7c7b1" />
 
 - 큐브
-    
-    ![스크린샷 2026-01-28 144102.png](attachment:91901eca-8076-4e9c-8f19-58c0b45258d6:스크린샷_2026-01-28_144102.png)
-    
+    <img width="247" height="255" alt="스크린샷 2026-01-28 144102" src="https://github.com/user-attachments/assets/103a4c2e-60be-4668-853d-ae339b59087d" />
 
 - 문
-    
-    ![스크린샷 2026-01-28 145041.png](attachment:23fb0bae-45f6-4d1e-a792-ffd7f54fa13e:스크린샷_2026-01-28_145041.png)
-    
+    <img width="481" height="300" alt="스크린샷 2026-01-28 145041" src="https://github.com/user-attachments/assets/ca98fbad-7453-4d14-92f9-2d643017c901" />
 
 - 큐브생성기
-    
-    ![스크린샷 2026-01-28 144423.png](attachment:ce902c8d-0e41-4789-821c-d3629acc3949:스크린샷_2026-01-28_144423.png)
-    
+    <img width="207" height="137" alt="스크린샷 2026-01-28 144423" src="https://github.com/user-attachments/assets/5d370fab-1486-4e3b-b273-b7af51666296" />
 
 - 점프 패드
-    
-    ![스크린샷 2026-01-28 144212.png](attachment:7315d6ac-f7d1-4b66-be86-a65bed8ac1bd:스크린샷_2026-01-28_144212.png)
-    
+    <img width="208" height="189" alt="스크린샷 2026-01-28 144212" src="https://github.com/user-attachments/assets/eb5cc91b-3380-4e57-b48b-07efb17f64c7" />
 
 - 벨트
-    
-    ![스크린샷 2026-01-28 145249.png](attachment:aa5e4672-77e3-4182-882e-f97b67595969:스크린샷_2026-01-28_145249.png)
-    
+    <img width="835" height="514" alt="스크린샷 2026-01-28 145249" src="https://github.com/user-attachments/assets/1de0dc26-8c2f-4a1f-9d03-33c046d0636c" />
 
 - 시소
-    
-    ![스크린샷 2026-01-28 145335.png](attachment:2c4ef5e6-98a0-4ce5-9b37-b9d266b8c098:스크린샷_2026-01-28_145335.png)
-    
+    <img width="653" height="177" alt="스크린샷 2026-01-28 145335" src="https://github.com/user-attachments/assets/2c79ce43-d879-490e-a7ac-c61f28bc6feb" />
 
 - 레이저
-    
-    ![스크린샷 2026-01-28 144201.png](attachment:ea714f74-153a-4f6f-a7a7-5408541d0664:스크린샷_2026-01-28_144201.png)
-    
+    <img width="457" height="142" alt="스크린샷 2026-01-28 144201" src="https://github.com/user-attachments/assets/4102a9f4-1ee9-4390-9cb3-bab873a28f39" />
 
 - 선풍기
-    
-    ![스크린샷 2026-01-28 144318.png](attachment:3142a791-36d3-4dd4-863e-253b3fdef1a9:스크린샷_2026-01-28_144318.png)
-    
+    <img width="399" height="490" alt="스크린샷 2026-01-28 144318" src="https://github.com/user-attachments/assets/620c7b5b-220d-4aaa-8321-1a4ad383d506" />
 
 # 후기
 
