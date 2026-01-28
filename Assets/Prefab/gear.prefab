@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 4984866030396212839}
   - component: {fileID: 3670102251965407075}
   m_Layer: 0
-  m_Name: Gear
+  m_Name: gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1526,7 +1526,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 147df59024b00ba4e970ed2e9ee758a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GearRotator
-  speed: 30
+  speed: 40
   rotationAxis: {x: 0, y: 1, z: 0}
 --- !u!64 &4984866030396212839
 MeshCollider:
@@ -1535,7 +1535,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8883767280330518576}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 05ad64a9dbfd8e7498d1107908a98ac0, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
