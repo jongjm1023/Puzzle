@@ -743,7 +743,7 @@ Rigidbody:
   m_GameObject: {fileID: 2491297603278289240}
   serializedVersion: 5
   m_Mass: 1
-  m_LinearDamping: 0.7
+  m_LinearDamping: 0.3
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -801,10 +801,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.35
   m_Height: 1.8
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.1, z: 0}
 --- !u!1 &2566902403717440876
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,8 +983,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.7
+  m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!1 &3343092935341654583
 GameObject:
   m_ObjectHideFlags: 0
