@@ -42,7 +42,7 @@ public class Laser : MonoBehaviour
         foreach (var hit in hits)
         {
             // 자신(Laser 본체)이나 Wind 태그는 무시
-            if (hit.collider.gameObject == gameObject || hit.collider.CompareTag("Wind"))
+            if (hit.collider.gameObject == gameObject || hit.collider.CompareTag("Wind") || hit.collider.CompareTag("Floor")|| hit.collider.CompareTag("Text") )
             {
                 continue;
             }
